@@ -1,0 +1,81 @@
+PREFIX fx:    <http://sparql.xyz/facade-x/ns/>
+PREFIX skos:  <http://www.w3.org/2004/02/skos/core#>
+PREFIX swarm: <https://www.swarmcommunity.org/taxonomies/swarm-glossary/>
+PREFIX xyz:   <http://sparql.xyz/facade-x/data/>
+
+swarm:data-lineage  a   skos:Concept;
+        skos:prefLabel  "Data Lineage"@en .
+
+swarm:deterministic-knowledge
+        a               skos:Concept;
+        skos:prefLabel  "Deterministic Knowledge"@en .
+
+swarm:entity-extraction
+        a               skos:Concept;
+        skos:prefLabel  "Entity Extraction"@en .
+
+swarm:entity-resolution
+        a               skos:Concept;
+        skos:prefLabel  "Entity Resolution"@en .
+
+swarm:graph-embedding
+        a               skos:Concept;
+        skos:prefLabel  "Graph Embedding"@en .
+
+swarm:graph-grounding
+        a               skos:Concept;
+        skos:prefLabel  "Graph Grounding"@en .
+
+swarm:graph-neural-network
+        a               skos:Concept;
+        skos:prefLabel  "Graph Neural Network"@en .
+
+swarm:graph-seeding  a  skos:Concept;
+        skos:prefLabel  "Graph Seeding"@en .
+
+swarm:inference  a      skos:Concept;
+        skos:prefLabel  "Inference"@en .
+
+swarm:knowledge-graph
+        a               skos:Concept;
+        skos:altLabel   "KG"@en;
+        skos:prefLabel  "Knowledge Graph"@en .
+
+swarm:link-prediction
+        a               skos:Concept;
+        skos:prefLabel  "Link Prediction"@en .
+
+swarm:probabilistic-knowledge
+        a               skos:Concept;
+        skos:prefLabel  "Probabilistic Knowledge"@en .
+
+swarm:provenance  a     skos:Concept;
+        skos:prefLabel  "Provenance"@en .
+
+swarm:record-linkage  a  skos:Concept;
+        skos:prefLabel  "Record Linkage"@en .
+
+swarm:semantic-layer  a  skos:Concept;
+        skos:prefLabel  "Semantic Layer"@en .
+
+swarm:semantic-web  a   skos:Concept;
+        skos:prefLabel  "Semantic Web"@en .
+
+swarm:sub-graph-extraction
+        a               skos:Concept;
+        skos:prefLabel  "Sub-Graph Extraction"@en .
+
+swarm:taxonomic-relations
+        a               skos:Concept;
+        skos:prefLabel  "Taxonomic Relations"@en .
+
+swarm:triplestore  a    skos:Concept;
+        skos:altLabel   "Triple Store"@en;
+        skos:prefLabel  "Triplestore"@en .
+
+swarm:virtual-graph  a  skos:Concept;
+        skos:prefLabel  "Virtual Graph"@en .
+
+swarm:w3c-semantic-technologies
+        a               skos:Concept;
+        skos:prefLabel  "W3C Semantic Technologies"@en .

@@ -1,0 +1,49 @@
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX swarm: <https://www.swarmcommunity.org/taxonomies/swarm-glossary/>
+
+CONSTRUCT {
+    ?concept
+        a skos:Concept ;
+        skos:prefLabel ?prefLabelEn ;
+        skos:altLabel ?altLabelEn .
+}
+WHERE {
+    SERVICE <x-sparql-anything:> {
+        fx:properties
+            fx:location ?_file ;
+            fx:spreadsheet.headers true .
+
+        GRAPH ?sheet {
+            ?row xyz:Category "Knowledge Graphs" ;
+                xyz:prefLabel ?prefLabel .
+            BIND(STRLANG(STR(?prefLabel), "en") AS ?prefLabelEn)
+
+            OPTIONAL {
+                ?row xyz:altLabels ?altLabel .
+                FILTER(STRLEN(STR(?altLabel)) > 0)
+                BIND(STRLANG(STR(?altLabel), "en") AS ?altLabelEn)
+            }
+        }
+
+        # Work exclusively with the "Vocabulary Terms" sheet.
+        FILTER(STRENDS(STR(?sheet), "Vocabulary%20Terms"))
+    }
+
+    # Convert the preferred label into an IRI-safe local name.
+    # "Knowledge Graph" -> "knowledge-graph"
+    # "Semantic Web"    -> "semantic-web"
+    BIND(
+        LCASE(
+            REPLACE(
+                STR(?prefLabel),
+                "[^A-Za-z0-9]+",
+                "-"
+            )
+        )
+        AS ?slug
+    )
+
+    BIND(IRI(CONCAT(STR(swarm:), ?slug)) AS ?concept)
+}
