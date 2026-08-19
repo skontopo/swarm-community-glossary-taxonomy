@@ -1,0 +1,274 @@
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX gpt: <http://www.ontotext.com/gpt/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX mwapi: <https://www.mediawiki.org/ontology#API/>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX schema: <http://schema.org/>
+
+#INSERT {
+#    ?concept skos:exactMatch ?wikidataEntity .
+#}
+SELECT
+    ?concept
+    ?prefLabel
+    ?altLabel
+    ?candidateList
+    ?candidateIds
+    ?prompt
+    ?rawSelection
+    ?selectedQid
+    ?wikidataEntity
+WHERE {
+
+    # ============================================================
+    # 1. Retrieve SWARM concepts and Wikidata candidates
+    # ============================================================
+
+    {
+        SELECT
+            ?concept
+            ?prefLabel
+            ?altLabel
+
+            (GROUP_CONCAT(
+             DISTINCT ?candidateLine;
+             separator="\n"
+             ) AS ?candidateList)
+
+            (GROUP_CONCAT(
+             DISTINCT CONCAT("|", ?candidateQid, "|");
+             separator=""
+             ) AS ?candidateIds)
+
+        WHERE {
+
+            # ----------------------------------------------------
+            # SWARM glossary concepts
+            # ----------------------------------------------------
+
+            ?concept
+                a skos:Concept ;
+                skos:prefLabel ?prefLabel .
+
+            OPTIONAL {
+                ?concept skos:altLabel ?altLabel .
+            }
+
+            FILTER (
+                STRSTARTS(
+                    STR(?concept),
+                    "https://www.swarmcommunity.org/taxonomies/swarm-glossary/"
+                )
+            )
+
+            # Skip concepts already linked
+            FILTER NOT EXISTS {
+                ?concept skos:exactMatch ?existingMatch .
+            }
+
+            BIND(
+                STR(?prefLabel)
+                AS ?searchTerm
+            )
+
+
+            # ----------------------------------------------------
+            # 2. Wikidata EntitySearch
+            # ----------------------------------------------------
+
+            SERVICE <https://query.wikidata.org/sparql> {
+
+                SERVICE wikibase:mwapi {
+
+                    bd:serviceParam
+                        wikibase:endpoint "www.wikidata.org" ;
+                        wikibase:api "EntitySearch" ;
+                        mwapi:search ?searchTerm ;
+                        mwapi:language "en" ;
+                        mwapi:type "item" ;
+                        mwapi:limit 3 .
+
+                    ?candidate
+                        wikibase:apiOutputItem mwapi:item .
+
+                    ?candidateLabel
+                        wikibase:apiOutput mwapi:label .
+
+                    ?rank
+                        wikibase:apiOrdinal true .
+                }
+
+                OPTIONAL {
+                    ?candidate
+                        schema:description
+                            ?candidateDescription .
+
+                    FILTER (
+                        LANG(?candidateDescription) = "en"
+                    )
+                }
+            }
+
+
+            # Extract the Wikidata Q-id
+            BIND(
+                STRAFTER(
+                    STR(?candidate),
+                    "/entity/"
+                )
+                AS ?candidateQid
+            )
+
+
+            # Human-readable representation of each candidate
+            BIND(
+                CONCAT(
+                          STR(?rank),
+                          ". ",
+                          STR(?candidateQid),
+                          " | ",
+                          STR(?candidateLabel),
+
+                          COALESCE(
+                                      CONCAT(
+                                                " | ",
+                                                STR(?candidateDescription)
+                                            ),
+                                      ""
+                                  )
+                      )
+                AS ?candidateLine
+            )
+        }
+
+        GROUP BY
+        ?concept
+        ?prefLabel
+        ?altLabel
+    }
+
+
+    # Continue only when Wikidata returned candidates
+    FILTER (
+        BOUND(?candidateIds)
+        &&
+        STRLEN(STR(?candidateIds)) > 0
+    )
+
+
+    # ============================================================
+    # 3. Prepare the LLM prompt
+    # ============================================================
+
+    BIND(
+        COALESCE(
+                    STR(?altLabel),
+                    "(none)"
+                )
+        AS ?altLabelText
+    )
+
+
+    BIND(
+        CONCAT(
+                  "Map the following SWARM glossary concept to Wikidata.\n\n",
+
+                  "SWARM preferred label: ",
+                  STR(?prefLabel),
+                  "\n",
+
+                  "SWARM alternative label: ",
+                  ?altLabelText,
+                  "\n\n",
+
+                  "The Wikidata search API returned these candidates:\n",
+                  STR(?candidateList),
+                  "\n\n",
+
+                  "Choose a candidate ONLY if it denotes the same concept. ",
+                  "Do not choose an entity that is merely related, broader, ",
+                  "narrower, or associated with the SWARM concept.\n\n",
+
+                  "Return exactly one Q-id from the candidates, ",
+                  "for example Q54837.\n",
+
+                  "If none of the candidates is genuinely equivalent, ",
+                  "return exactly NONE.\n\n",
+
+                  "Return nothing else."
+              )
+        AS ?prompt
+    )
+
+
+    FILTER (
+        BOUND(?prompt)
+        &&
+        STRLEN(STR(?prompt)) > 0
+    )
+
+
+    # ============================================================
+    # 4. LLM-assisted candidate selection
+    # ============================================================
+
+    ?rawSelection gpt:ask ?prompt .
+
+
+    # ============================================================
+    # 5. Normalize the response
+    # ============================================================
+
+    BIND(
+        REPLACE(
+            STR(?rawSelection),
+            "^\\s+|\\s+$",
+            ""
+        )
+        AS ?selectedQid
+    )
+
+
+    # ============================================================
+    # 6. Validate the LLM result
+    # ============================================================
+
+    # Accept only Wikidata Q-ids.
+    # If the LLM returns NONE, no mapping is produced.
+    FILTER (
+        REGEX(
+            ?selectedQid,
+            "^Q[1-9][0-9]*$"
+        )
+    )
+
+
+    # The LLM may only choose one of the candidates
+    # actually returned by Wikidata.
+    FILTER (
+        CONTAINS(
+            ?candidateIds,
+            CONCAT(
+                      "|",
+                      ?selectedQid,
+                      "|"
+                  )
+        )
+    )
+
+
+    # ============================================================
+    # 7. Build the canonical Wikidata entity IRI
+    # ============================================================
+
+    BIND(
+        IRI(
+            CONCAT(
+                      "http://www.wikidata.org/entity/",
+                      ?selectedQid
+                  )
+        )
+        AS ?wikidataEntity
+    )
+}
+ORDER BY LCASE(STR(?prefLabel))
