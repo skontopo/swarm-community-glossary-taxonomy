@@ -66,18 +66,17 @@ This is useful for checking the quality of the Wikidata search independently of 
 
 ### `queries/wikidata-llm-linking.rq`
 
-The complete enrichment query.
-
-It:
+This is the complete enrichment query which
 
 1. retrieves the SWARM glossary concepts;
-2. searches Wikidata for three candidates;
+2. searches Wikidata for three top candidates;
 3. prepares the candidate information for the LLM;
 4. asks the LLM to select the equivalent entity or return `NONE`;
 5. validates that the selected Q-id was one of the Wikidata candidates;
 6. prepares the corresponding Wikidata entity IRI.
 
-During development, the query can be run as a `SELECT` so that the proposed mappings can be inspected before modifying the repository.
+> [!TIP]
+> During development, the query can be run as a `SELECT` so that the proposed mappings can be inspected before modifying the repository.
 
 Once the results have been reviewed, the query can be adapted to insert accepted mappings as `skos:exactMatch` triples.
 
@@ -90,18 +89,3 @@ The workflow follows a few simple principles:
 * **No match is acceptable.** Returning `NONE` is preferable to creating an incorrect mapping.
 * **Mappings can be reviewed before insertion.** The `SELECT` workflow makes proposed links visible before they are written back to the graph.
 * **`skos:exactMatch` is used conservatively.** A Wikidata item should represent essentially the same concept as its SWARM glossary counterpart.
-
-## Example
-
-For the SWARM concept `Semantic Web`, the Wikidata search returns `Q54837` as the appropriate entity. The resulting mapping is:
-
-```turtle
-@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
-@prefix swarm: <https://www.swarmcommunity.org/taxonomies/swarm-glossary/> .
-@prefix wd: <http://www.wikidata.org/entity/> .
-
-swarm:semantic-web
-    skos:exactMatch wd:Q54837 .
-```
-
-The same candidate-search and selection process is applied independently to the other glossary concepts.
