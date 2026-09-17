@@ -37,11 +37,9 @@ java -jar sparql-anything-v1.2.0.jar \
   -o output/swarm-glossary.ttl
 ```
 
-> [!IMPORTANT]
-> The `sparql-anything-v1.2.0.jar` file should be placed in the project root directory. It is intentionally excluded from version control (gitignored) and must be available locally to execute the mapping.
-
 > [!NOTE]
-> The Excel file path is passed to the SPARQL Anything query as a parameter, so the file location is not hard-coded inside the mapping.
+> 1. The `sparql-anything-v1.2.0.jar` file should be placed in the project root directory. It is intentionally excluded from version control (gitignored) and must be available locally to execute the mapping.
+> 2. The Excel file path is passed to the SPARQL Anything query as a parameter, so the file location is not hard-coded inside the mapping.
 
 ## Output
 
