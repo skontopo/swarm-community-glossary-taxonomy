@@ -95,9 +95,7 @@ The queries and documentation for this phase are kept separately under [`wikidat
 
 ## Notes
 
-The mapping uses the spreadsheet's actual column headers rather than positional column numbers.
-
-The current taxonomy focuses specifically on the **Knowledge Graphs** category, but the same approach can later be extended to additional glossary categories.
-
-The Wikidata-linking workflow is intentionally conservative: a concept may remain unmapped when no sufficiently equivalent Wikidata entity is found.
+- The mapping uses the spreadsheet's actual column headers rather than positional column numbers. 
+- The current taxonomy focuses specifically on the **Knowledge Graphs** category, but the same approach can later be extended to additional glossary categories. 
+- The Wikidata-linking workflow is intentionally conservative: a concept may remain unmapped when no sufficiently equivalent Wikidata entity is found.
 
