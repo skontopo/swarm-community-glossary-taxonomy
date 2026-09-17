@@ -32,7 +32,7 @@ From the project root, run:
 ```bash
 java -jar sparql-anything-v1.2.0.jar \
   -q mapping/swarm-glossary.rq \
-  -v "file=input/SWARM Community Glossary.xlsx" \
+  -v "file=input/SWARM Community Glossary - Vocabulary Terms.xlsx" \
   -f TTL \
   -o output/swarm-glossary.ttl
 ```
