@@ -18,8 +18,8 @@ Mappings are represented using `skos:exactMatch`; for example:
 swarm:semantic-web
     skos:exactMatch wd:Q54837 .
 ```
-
-A concept does **not** have to receive a Wikidata mapping. If no sufficiently equivalent entity is available, leaving the concept unmapped is considered a valid outcome.
+> [!NOTE]
+> A concept **does not** have to receive a Wikidata mapping. If no sufficiently equivalent entity is available, leaving the concept unmapped is considered a valid outcome.
 
 ## How the process works
 
